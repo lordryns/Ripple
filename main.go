@@ -137,21 +137,6 @@ func searchPath(path string, filename string) (bool, string) {
 
 }
 
-// follow a system link
-func resolveSymLink(fullpath string) (string, error) {
-	target, err := os.Readlink(fullpath)
-
-	if err != nil {
-		return "", err
-	}
-
-	if !filepath.IsAbs(fullpath) {
-		target = filepath.Join(filepath.Dir(fullpath), target)
-	}
-
-	return target, nil
-}
-
 // clears the terminal screen
 func clearScreen() {
 	fmt.Print("\033[H\033[2J")
