@@ -10,10 +10,11 @@ import (
 	"time"
 )
 
+var searchItems = []string{"Free search", "Specific search"}
+
 func main() {
 	clearScreen()
 	fmt.Println("Looking for internal storage...")
-	var items = []string{"Deep search", "Create task"}
 	hasMoved := moveToHomeDir()
 
 	current, err := os.Getwd()
@@ -41,25 +42,8 @@ func main() {
 
 	time.Sleep(time.Second)
 	color.Green("Successfully accessed Internal storage!")
-	fmt.Println("Loading commands...")
-	time.Sleep(time.Second / 2)
 
-	command := promptui.Select{
-		Label: "Commands",
-		Items: items,
-	}
-
-	_, res, err := command.Run()
-
-	if err != nil {
-		color.Yellow("Application exited!")
-		fmt.Println("Was this intentional?")
-		return
-	}
-
-	if res == items[0] {
-		deepSearchCommandCenter(current + "/storage")
-	}
+	deepSearchCommandCenter(current + "/storage")
 
 }
 
@@ -77,8 +61,20 @@ func deepSearchCommandCenter(path string) {
 	}
 
 	clearScreen()
+	var choiceSelect = promptui.Select{
+		Label: "Search type",
+		Items: searchItems,
+	}
+
+	var _, choice, err2 = choiceSelect.Run()
+
+	if err2 != nil {
+		return
+	}
+
+	clearScreen()
 	fmt.Printf("Looking for %v in storage [%v]\n", res, path)
-	var exists, fpath = searchPath(path, res)
+	var exists, fpath = searchPath(path, res, choice)
 	if exists {
 		color.Green("File found at : %v\n", fpath)
 	} else {
@@ -108,7 +104,7 @@ func moveToHomeDir() bool {
 }
 
 // searches a specified path
-func searchPath(path string, filename string) (bool, string) {
+func searchPath(path string, filename string, choice string) (bool, string) {
 	fmt.Printf("Search path: %v\n", path)
 	files, err := os.ReadDir(path)
 	if err != nil {
@@ -126,12 +122,20 @@ func searchPath(path string, filename string) (bool, string) {
 		}
 		if info.IsDir() {
 			fmt.Println("Opening new dir")
-			found, fullpath := searchPath(filepath.Join(path, entry.Name()), filename)
+			found, fullpath := searchPath(filepath.Join(path, entry.Name()), filename, choice)
 			if found {
 				return true, fullpath
 			}
-		} else if strings.Contains(entry.Name(), filename) {
-			return true, filepath.Join(path, filename)
+		} else {
+			if choice == searchItems[1] {
+				if entry.Name() == filename {
+					return true, filepath.Join(path, filename)
+				}
+			} else {
+				if strings.Contains(entry.Name(), filename) {
+					return true, filepath.Join(path, filename)
+				}
+			}
 		}
 	}
 	return false, ""
