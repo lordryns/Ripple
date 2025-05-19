@@ -6,6 +6,7 @@ import (
 	"github.com/manifoldco/promptui"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -129,7 +130,7 @@ func searchPath(path string, filename string) (bool, string) {
 			if found {
 				return true, fullpath
 			}
-		} else if entry.Name() == filename {
+		} else if strings.Contains(entry.Name(), filename) {
 			return true, filepath.Join(path, filename)
 		}
 	}
